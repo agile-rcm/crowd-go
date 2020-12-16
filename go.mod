@@ -1,4 +1,4 @@
-module github.com/agile-rcm/crowd-go.git
+module github.com/agile-rcm/crowd-go
 
 go 1.15
 
