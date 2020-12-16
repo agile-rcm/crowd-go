@@ -21,13 +21,13 @@ func (api *API) AddUserToGroup(userName, groupName string) error {
 	case 201:
 		return nil
 	case 400:
-		return ErrGroupNoFound
+		return ErrorGroupNotFound
 	case 403:
-		return ErrNoPerms
+		return ErrorNoPermissions
 	case 404:
-		return ErrUserNoFound
+		return ErrorUserNotFound
 	case 409:
-		return ErrUserAlreadyInGroup
+		return ErrorUserAlreadyInGroup
 	default:
 		return unknownResponse(status)
 	}

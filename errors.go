@@ -3,11 +3,11 @@ package crowd
 import "errors"
 
 var (
-	ErrInitEmptyURL      	= errors.New("URL can't be empty")
-	ErrInitEmptyApp      	= errors.New("App can't be empty")
-	ErrInitEmptyPassword 	= errors.New("Password can't be empty")
-	ErrNoPerms           	= errors.New("Application does not have permission to use Crowd")
-	ErrUserNoFound      	= errors.New("User could not be found")
-	ErrGroupNoFound      	= errors.New("Group could not be found")
-	ErrUserAlreadyInGroup	= errors.New("User is already a direct member of the group")
+	ErrorUserAlreadyInGroup	= errors.New("User is already a direct member of the group")
+	ErrorNoPermissions     	= errors.New("Your application has no permission to access crowd")
+	ErrorUserNotFound      	= errors.New("User could not be found")
+	ErrorGroupNotFound      = errors.New("Group could not be found")
+	NewApiEmptyURL      	= errors.New("You must set the crowd base URL")
+	NewApiEmptyApplication 	= errors.New("You must set the crowd application name")
+	NewApiEmptyPassword 	= errors.New("You must set a password to access the crowd application")
 )

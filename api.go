@@ -8,12 +8,44 @@ import (
 	"fmt"
 	"github.com/valyala/fasthttp"
 	"net/url"
+	"runtime"
+	"time"
+)
+
+const (
+	VERSION 	= "3.0.1"
+	NAME 		= "crowd-go"
 )
 
 type API struct {
 	Client		*fasthttp.Client
 	Url			string
 	BasicAuth 	string
+}
+
+func NewAPI(url, application, applicationPassword string) (*API, error) {
+
+	switch {
+	case url == "":
+		return nil, NewApiEmptyURL
+	case application == "":
+		return nil, NewApiEmptyApplication
+	case applicationPassword == "":
+		return nil, NewApiEmptyPassword
+	}
+
+	return &API{
+		Client: &fasthttp.Client{
+			Name:                generateUserAgent(),
+			MaxIdleConnDuration: 5 * time.Second,
+			ReadTimeout:         3 * time.Second,
+			WriteTimeout:        3 * time.Second,
+			MaxConnsPerHost:     150,
+		},
+
+		Url:       url,
+		BasicAuth: generateBasicAuthString(application, applicationPassword),
+	}, nil
 }
 
 func (api *API) requestPost(uri string, contentType string) *fasthttp.Request {
@@ -109,14 +141,25 @@ func getCrowdErrorMessage(data []byte) error {
 	return errors.New(crowdErrorMessage.Message)
 }
 
-func generateBasicAuthString(username string, password string) string {
-	return base64.StdEncoding.EncodeToString([]byte(username + ":" + password))
-}
-
 func urlEscape(s string) string {
 	return url.QueryEscape(s)
 }
 
 func unknownResponse(status int) error {
 	return fmt.Errorf("Unknown response: %d)", status)
+}
+
+func generateBasicAuthString(username string, password string) string {
+	return base64.StdEncoding.EncodeToString([]byte(username + ":" + password))
+}
+
+func generateUserAgent() string {
+
+	userAgent := fmt.Sprintf(
+		"%s/%s (go; %s; %s-%s)",
+		NAME, VERSION, runtime.Version(),
+		runtime.GOARCH, runtime.GOOS,
+	)
+
+	return userAgent
 }
