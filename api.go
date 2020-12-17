@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	VERSION 	= "3.0.1"
+	VERSION 	= "0.2.1"
 	NAME 		= "crowd-go"
 )
 
@@ -53,6 +53,7 @@ func (api *API) requestPost(uri string, contentType string) *fasthttp.Request {
 	r := fasthttp.AcquireRequest()
 	r.SetRequestURI(api.Url + uri)
 	r.Header.Add("Authorization", "Basic "+api.BasicAuth)
+	r.Header.SetMethod("POST")
 
 	switch contentType {
 	case "json":
@@ -75,6 +76,7 @@ func (api *API) requestGet(uri string) *fasthttp.Request {
 	r := fasthttp.AcquireRequest()
 	r.SetRequestURI(api.Url + uri)
 	r.Header.Add("Authorization", "Basic "+api.BasicAuth)
+	r.Header.SetMethod("GET")
 
 	return r
 
@@ -121,6 +123,7 @@ func (api *API) doPostRequest(uri string, contentType string, body interface{}) 
 	}
 
 	status := response.StatusCode()
+	fmt.Println(string(response.Body()))
 
 	if !(status >= 200 && status <= 204) && status < 500 {
 		return status, getCrowdErrorMessage(response.Body())
@@ -146,7 +149,7 @@ func urlEscape(s string) string {
 }
 
 func unknownResponse(status int) error {
-	return fmt.Errorf("Unknown response: %d)", status)
+	return fmt.Errorf("Unknown response: %d", status)
 }
 
 func generateBasicAuthString(username string, password string) string {
