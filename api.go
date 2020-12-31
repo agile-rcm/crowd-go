@@ -3,7 +3,6 @@ package crowd
 import (
 	"encoding/base64"
 	"encoding/json"
-	"encoding/xml"
 	"errors"
 	"fmt"
 	"github.com/valyala/fasthttp"
@@ -13,7 +12,7 @@ import (
 )
 
 const (
-	VERSION 	= "0.2.1"
+	VERSION 	= "0.3.0"
 	NAME 		= "crowd-go"
 )
 
@@ -27,11 +26,11 @@ func NewAPI(url, application, applicationPassword string) (*API, error) {
 
 	switch {
 	case url == "":
-		return nil, NewApiEmptyURL
+		return nil, ErrorGeneralEmptyURL
 	case application == "":
-		return nil, NewApiEmptyApplication
+		return nil, ErrorGeneralEmptyApplication
 	case applicationPassword == "":
-		return nil, NewApiEmptyPassword
+		return nil, ErrorGeneralEmptyPassword
 	}
 
 	return &API{
@@ -48,24 +47,40 @@ func NewAPI(url, application, applicationPassword string) (*API, error) {
 	}, nil
 }
 
-func (api *API) requestPost(uri string, contentType string) *fasthttp.Request {
+func (api *API) requestDelete(uri string) *fasthttp.Request {
+
+	r := fasthttp.AcquireRequest()
+	r.SetRequestURI(api.Url + uri)
+	r.Header.Add("Authorization", "Basic "+api.BasicAuth)
+	r.Header.SetMethod("DELETE")
+	r.Header.Set("Content-Type", "application/json")
+	r.Header.Add("Accept", "application/json")
+
+	return r
+
+}
+
+func (api *API) requestPost(uri string) *fasthttp.Request {
 
 	r := fasthttp.AcquireRequest()
 	r.SetRequestURI(api.Url + uri)
 	r.Header.Add("Authorization", "Basic "+api.BasicAuth)
 	r.Header.SetMethod("POST")
+	r.Header.Set("Content-Type", "application/json")
+	r.Header.Add("Accept", "application/json")
 
-	switch contentType {
-	case "json":
-		r.Header.Set("Content-Type", "application/json")
-		r.Header.Add("Accept", "application/json")
-	case "xml":
-		r.Header.Set("Content-Type", "application/xml")
-		r.Header.Add("Accept", "application/xml")
-	default:
-		r.Header.Set("Content-Type", "application/json")
-		r.Header.Add("Accept", "application/json")
-	}
+	return r
+
+}
+
+func (api *API) requestPut(uri string) *fasthttp.Request {
+
+	r := fasthttp.AcquireRequest()
+	r.SetRequestURI(api.Url + uri)
+	r.Header.Add("Authorization", "Basic "+api.BasicAuth)
+	r.Header.SetMethod("PUT")
+	r.Header.Set("Content-Type", "application/json")
+	r.Header.Add("Accept", "application/json")
 
 	return r
 
@@ -77,44 +92,16 @@ func (api *API) requestGet(uri string) *fasthttp.Request {
 	r.SetRequestURI(api.Url + uri)
 	r.Header.Add("Authorization", "Basic "+api.BasicAuth)
 	r.Header.SetMethod("GET")
+	r.Header.Set("Content-Type", "application/json")
+	r.Header.Add("Accept", "application/json")
 
 	return r
 
 }
 
-func (api *API) doPostRequest(uri string, contentType string, body interface{}) (int, error) {
-	request := api.requestPost(uri, contentType)
+func (api *API) doDeleteRequest(uri string) (int, error) {
+	request := api.requestDelete(uri)
 	response := fasthttp.AcquireResponse()
-
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
-
-	switch contentType {
-	case "json":
-		bodyContent, err := json.Marshal(body)
-
-		if err != nil {
-			return 0, err
-		}
-
-		request.SetBody(bodyContent)
-	case "xml":
-		bodyContent, err := xml.Marshal(body)
-
-		if err != nil {
-			return 0, err
-		}
-
-		request.SetBody(bodyContent)
-	default:
-		bodyContent, err := json.Marshal(body)
-
-		if err != nil {
-			return 0, err
-		}
-
-		request.SetBody(bodyContent)
-	}
 
 	err := api.Client.Do(request, response)
 
@@ -123,7 +110,92 @@ func (api *API) doPostRequest(uri string, contentType string, body interface{}) 
 	}
 
 	status := response.StatusCode()
-	fmt.Println(string(response.Body()))
+
+	if !(status >= 200 && status <= 204) && status < 500 {
+		return status, getCrowdErrorMessage(response.Body())
+	}
+
+	return status, nil
+
+}
+
+func (api *API) doGetRequest(uri string) (int, []byte, error) {
+	request := api.requestGet(uri)
+	response := fasthttp.AcquireResponse()
+
+	err := api.Client.Do(request, response)
+
+	if err != nil {
+		return 0, nil, err
+	}
+
+	status := response.StatusCode()
+
+	if !(status >= 200 && status <= 204) && status < 500 {
+		return status, nil, getCrowdErrorMessage(response.Body())
+	}
+
+	responseBody := response.Body()
+
+	return status, responseBody, err
+
+}
+
+func (api *API) doPostRequest(uri string, body interface{}) (int, error) {
+
+	request := api.requestPost(uri)
+	response := fasthttp.AcquireResponse()
+
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
+
+	bodyContent, err := json.Marshal(body)
+
+	if err != nil {
+		return 0, err
+	}
+
+	request.SetBody(bodyContent)
+
+	err = api.Client.Do(request, response)
+
+	if err != nil {
+		return 0, err
+	}
+
+	status := response.StatusCode()
+
+	if !(status >= 200 && status <= 204) && status < 500 {
+		return status, getCrowdErrorMessage(response.Body())
+	}
+
+	return status, nil
+
+}
+
+func (api *API) doPutRequest(uri string, body interface{}) (int, error) {
+
+	request := api.requestPut(uri)
+	response := fasthttp.AcquireResponse()
+
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
+
+	bodyContent, err := json.Marshal(body)
+
+	if err != nil {
+		return 0, err
+	}
+
+	request.SetBody(bodyContent)
+
+	err = api.Client.Do(request, response)
+
+	if err != nil {
+		return 0, err
+	}
+
+	status := response.StatusCode()
 
 	if !(status >= 200 && status <= 204) && status < 500 {
 		return status, getCrowdErrorMessage(response.Body())
@@ -165,4 +237,5 @@ func generateUserAgent() string {
 	)
 
 	return userAgent
+
 }
