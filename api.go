@@ -1,6 +1,7 @@
 package crowd
 
 import (
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -22,7 +23,7 @@ type API struct {
 	BasicAuth 	string
 }
 
-func NewAPI(url, application, applicationPassword string) (*API, error) {
+func NewAPI(url, application, applicationPassword string, skipTlsVerify bool) (*API, error) {
 
 	switch {
 	case url == "":
@@ -40,6 +41,7 @@ func NewAPI(url, application, applicationPassword string) (*API, error) {
 			ReadTimeout:         3 * time.Second,
 			WriteTimeout:        3 * time.Second,
 			MaxConnsPerHost:     150,
+			TLSConfig: &tls.Config{InsecureSkipVerify: skipTlsVerify},
 		},
 
 		Url:       url,

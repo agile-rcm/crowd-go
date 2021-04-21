@@ -83,7 +83,7 @@ func TestNewAPI(t *testing.T) {
 	}))
 	defer server.Close()
 
-	api, err := NewAPI(server.URL, "testapp", "password")
+	api, err := NewAPI(server.URL, "testapp", "password", true)
 
 	assert.Nil(t, err)
 	assert.ObjectsAreEqual(API{}, api)
@@ -95,7 +95,7 @@ func TestRequestDelete(t *testing.T){
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer server.Close()
 
-	api, err := NewAPI(server.URL, "testapp", "password")
+	api, err := NewAPI(server.URL, "testapp", "password", true)
 
 	assert.Nil(t, err)
 	assert.ObjectsAreEqual(API{}, api)
@@ -113,7 +113,7 @@ func TestRequestPost(t *testing.T){
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer server.Close()
 
-	api, err := NewAPI(server.URL, "testapp", "password")
+	api, err := NewAPI(server.URL, "testapp", "password", true)
 
 	assert.Nil(t, err)
 
@@ -131,7 +131,7 @@ func TestRequestPut(t *testing.T){
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer server.Close()
 
-	api, err := NewAPI(server.URL, "testapp", "password")
+	api, err := NewAPI(server.URL, "testapp", "password", true)
 
 	assert.Nil(t, err)
 
@@ -149,7 +149,7 @@ func TestRequestGet(t *testing.T){
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer server.Close()
 
-	api, err := NewAPI(server.URL, "testapp", "password")
+	api, err := NewAPI(server.URL, "testapp", "password", true)
 
 	assert.Nil(t, err)
 
@@ -173,7 +173,7 @@ func TestDoDeleteRequest(t *testing.T){
 	}))
 	defer server.Close()
 
-	api, err := NewAPI(server.URL, "testapp", "password")
+	api, err := NewAPI(server.URL, "testapp", "password", true)
 
 	assert.Nil(t, err)
 
@@ -200,7 +200,7 @@ func TestDoGetRequest(t *testing.T){
 	}))
 	defer server.Close()
 
-	api, err := NewAPI(server.URL, "testapp", "password")
+	api, err := NewAPI(server.URL, "testapp", "password", true)
 
 	assert.Nil(t, err)
 
@@ -240,7 +240,7 @@ func TestDoPostRequest(t *testing.T){
 	}))
 	defer server.Close()
 
-	api, err := NewAPI(server.URL, "testapp", "password")
+	api, err := NewAPI(server.URL, "testapp", "password", true)
 
 	assert.Nil(t, err)
 
@@ -285,7 +285,7 @@ func TestDoPutRequest(t *testing.T){
 	}))
 	defer server.Close()
 
-	api, err := NewAPI(server.URL, "testapp", "password")
+	api, err := NewAPI(server.URL, "testapp", "password", true)
 
 	assert.Nil(t, err)
 
